@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        header, footer {
+            background-color: purple;
+            color: white;
+            text-align: center;
+            padding: 10px 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        input, button {
+            margin: 10px 0;
+            padding: 10px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Student Calculator</h1>
+    <p>Created by SHAUN MASHALE (NWU-MC)</p>
+</header>
+
+<div class="container">
+    <h2>Activity Input</h2>
+    <div id="activityInputs"></div>
+    <button onclick="addActivity()">Add Activity</button>
+    
+    <h2>Qualifying Information</h2>
+    <label for="examQualify">Marks needed to qualify for exam:</label>
+    <input type="number" id="examQualify" required>
+    
+    <label for="dmContribution">Participation Mark (DM) contribution towards final mark (%):</label>
+    <input type="number" id="dmContribution" required>
+    
+    <div id="finalMarkDisplay"></div>
+    
+    <button onclick="calculateParticipation()">Calculate Participation Mark</button>
+
+    <div id="participationResult"></div>
+    
+    <div id="examSection" style="display:none;">
+        <h2>Exam Input</h2>
+        <label for="examMark">Enter exam mark out of 100:</label>
+        <input type="number" id="examMark" max="100" required>
+        
+        <label for="examContribution">Exam contribution towards final mark (%):</label>
+        <input type="number" id="examContribution" required>
+        
+        <label for="manualParticipationContribution">Enter calculated participation contribution:</label>
+        <input type="number" id="manualParticipationContribution" required>
+        
+        <button onclick="calculateFinalMark()">Calculate Final Mark</button>
+    </div>
+    
+    <div id="finalResult"></div>
+    
+    <h2>Direct Calculation</h2>
+    <label for="directParticipationMark">Participation Mark:</label>
+    <input type="number" id="directParticipationMark" required>
+    
+    <label for="directExamMark">Exam Mark:</label>
+    <input type="number" id="directExamMark" max="100" required>
+    
+    <label for="directExamContribution">Exam Contribution (%):</label>
+    <input type="number" id="directExamContribution" required>
+    
+    <label for="directDmContribution">Participation Mark (DM) contribution towards final mark (%):</label>
+    <input type="number" id="directDmContribution" required>
+    
+    <button onclick="calculateDirectFinalMark()">Calculate Final Mark with Direct Inputs</button>
+    
+    <div id="directFinalResult"></div>
+    
+    <button onclick="window.open('YOUR_LINK_HERE', '_blank')">NEED HELP</button>
+</div>
+
+<footer>
+    <p>2025 SHAUN MASHALE, ALL RIGHTS RESERVED</p>
+</footer>
+
+<script>
+    let activityCount = 0;
+
+    function addActivity() {
+        if (activityCount < 25) {
+            const activityDiv = document.createElement('div');
+            activityDiv.innerHTML = `
+                <label>Activity ${activityCount + 1}:</label>
+                <input type="text" placeholder="Activity Name" required>
+                <input type="number" placeholder="Mark Obtained" required>
+                <input type="number" placeholder="Total Marks" required>
+                <label>Weightage (%):</label>
+                <input type="number" placeholder="Weightage" required>
+            `;
+            document.getElementById('activityInputs').appendChild(activityDiv);
+            activityCount++;
+        } else {
+            alert("Maximum of 25 activities reached.");
+        }
+    }
+
+    function calculateParticipation() {
+        const activities = Array.from(document.querySelectorAll('#activityInputs div'));
+        let totalWeightedMarks = 0;
+        let totalWeightage = 0;
+
+        activities.forEach(activity => {
+            const markObtained = Number(activity.querySelector('input[type="number"]').value);
+            const totalMarks = Number(activity.querySelectorAll('input[type="number"]')[1].value);
+            const weightage = Number(activity.querySelectorAll('input[type="number"]')[2].value);
+
+            if (totalMarks > 0) {
+                const adjustedMark = (markObtained * 100) / totalMarks;
+                const weightedMark = (adjustedMark * weightage) / 100;
+
+                totalWeightedMarks += weightedMark;
+                totalWeightage += weightage;
+            }
+        });
+
+        const participationMark = totalWeightage > 0 ? (totalWeightedMarks / totalWeightage) * 100 : 0;
+        document.getElementById('participationResult').innerText = `Participation Mark: ${participationMark.toFixed(2)}`;
+
+        const examQualify = Number(document.getElementById('examQualify').value);
+        if (participationMark < examQualify) {
+            document.getElementById('participationResult').innerText += "\nDID NOT QUALIFY FOR EXAM";
+            document.getElementById('examSection').style.display = "none";
+        } else {
+            document.getElementById('participationResult').innerText += "\nQUALIFIED FOR EXAM";
+            document.getElementById('examSection').style.display = "block";
+        }
+
+        updateFinalMarkDisplay(participationMark);
+    }
+
+    function updateFinalMarkDisplay(participationMark) {
+        const dmContribution = Number(document.getElementById('dmContribution').value);
+        const participationFinal = (participationMark * dmContribution) / 100;
+        document.getElementById('finalMarkDisplay').innerText = `Calculated Participation Contribution: ${participationFinal.toFixed(2)}`;
+    }
+
+    function calculateFinalMark() {
+        const examMark = Number(document.getElementById('examMark').value);
+        const examContribution = Number(document.getElementById('examContribution').value);
+        const manualParticipationContribution = Number(document.getElementById('manualParticipationContribution').value);
+
+        const examFinal = (examMark * examContribution) / 100;
+        const finalMark = manualParticipationContribution + examFinal;
+
+        let resultMessage = `Final Mark: ${finalMark.toFixed(2)}`;
+        resultMessage += `\nParticipation Contribution: ${manualParticipationContribution.toFixed(2)}`;
+        resultMessage += `\nExam Contribution: ${examFinal.toFixed(2)}`;
+
+        if (examMark < 40) {
+            resultMessage += "\nExam Result: Failed (sub-minimum)";
+            resultMessage += "\nPrepare for a second opportunity.";
+        } else {
+            resultMessage += "\nExam Result: Passed";
+        }
+
+        if (finalMark < 50) {
+            resultMessage += "\nSorry, you have failed the module.";
+        } else if (finalMark >= 75) {
+            resultMessage += "\nCongratulations, you have passed the module with distinction!";
+        } else {
+            resultMessage += "\nCongratulations, you have passed the module.";
+        }
+
+        document.getElementById('finalResult').innerText = resultMessage;
+    }
+
+    function calculateDirectFinalMark() {
+        const participationMark = Number(document.getElementById('directParticipationMark').value);
+        const examMark = Number(document.getElementById('directExamMark').value);
+        const examContribution = Number(document.getElementById('directExamContribution').value);
+        const directDmContribution = Number(document.getElementById('directDmContribution').value);
+        
+        const participationFinal = (participationMark * directDmContribution) / 100;
+        const examFinal = (examMark * examContribution) / 100;
+
+        const finalMark = participationFinal + examFinal;
+
+        let resultMessage = `Final Mark: ${finalMark.toFixed(2)}`;
+        resultMessage += `\nParticipation Contribution: ${participationFinal.toFixed(2)}`;
+        resultMessage += `\nExam Contribution: ${examFinal.toFixed(2)}`;
+
+        if (examMark < 40) {
+            resultMessage += "\nExam Result: Failed (sub-minimum)";
+            resultMessage += "\nPrepare for a second opportunity.";
+        } else {
+            resultMessage += "\nExam Result: Passed";
+        }
+
+        if (finalMark < 50) {
+            resultMessage += "\nSorry, you have failed the module.";
+        } else if (finalMark >= 75) {
+            resultMessage += "\nCongratulations, you have passed the module with distinction!";
+        } else {
+            resultMessage += "\nCongratulations, you have passed the module.";
+        }
+
+        document.getElementById('directFinalResult').innerText = resultMessage;
+    }
+</script>
+
+</body>
+</html>
